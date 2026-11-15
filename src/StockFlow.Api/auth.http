@@ -1,38 +1,76 @@
 @host = http://localhost:5044
 
-### Register (password needs 10+ characters)
+### 1. Register (password needs 10+ characters; 409 if it already exists)
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
 { "email": "Admin@Example.test", "password": "correct-horse-battery", "fullName": "First Admin" }
 
-### Register again, expect 409
+### 2. Register again, expect 409
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
 { "email": "admin@example.test", "password": "correct-horse-battery", "fullName": "Again" }
 
-### Short password, expect 400
+### 3. Short password, expect 400
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
 { "email": "short@example.test", "password": "abc", "fullName": "Short" }
 
-### Login, expect 200 with an accessToken
+### 4. Login, expect 200 with accessToken AND refreshToken
 # @name login
 POST {{host}}/api/auth/login
 Content-Type: application/json
 
 { "email": "admin@example.test", "password": "correct-horse-battery" }
 
-### Me WITHOUT a token, expect 401
+### 5. Me WITHOUT a token, expect 401
 GET {{host}}/api/auth/me
 
-### Me WITH the token, expect 200
+### 6. Me WITH the token, expect 200
 GET {{host}}/api/auth/me
 Authorization: Bearer {{login.response.body.accessToken}}
 
-### Wrong password, expect 401
+### 7. Refresh, expect 200 and a NEW refreshToken
+# @name refreshed
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "{{login.response.body.refreshToken}}" }
+
+### 8. Reuse the OLD refresh token, expect 401 (this revokes all tokens for the user)
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "{{login.response.body.refreshToken}}" }
+
+### 9. The NEWER token is now revoked too, expect 401
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "{{refreshed.response.body.refreshToken}}" }
+
+### 10. Log in again for the logout test, expect 200
+# @name login2
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@example.test", "password": "correct-horse-battery" }
+
+### 11. Logout, expect 204
+POST {{host}}/api/auth/logout
+Content-Type: application/json
+
+{ "refreshToken": "{{login2.response.body.refreshToken}}" }
+
+### 12. Refresh after logout, expect 401
+POST {{host}}/api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "{{login2.response.body.refreshToken}}" }
+
+### 13. Wrong password, expect 401 (send this 5 times to test lockout, then login gives 423)
 POST {{host}}/api/auth/login
 Content-Type: application/json
 

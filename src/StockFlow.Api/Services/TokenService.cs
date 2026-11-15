@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -11,6 +12,8 @@ namespace StockFlow.Api.Services;
 public interface ITokenService
 {
     (string Token, DateTime ExpiresAt) CreateAccessToken(AppUser user);
+    (string Raw, string Hash, DateTime ExpiresAt) CreateRefreshToken();
+    string HashToken(string rawToken);
 }
 
 public class TokenService(IOptions<JwtOptions> options) : ITokenService
@@ -39,4 +42,15 @@ public class TokenService(IOptions<JwtOptions> options) : ITokenService
 
         return (new JsonWebTokenHandler().CreateToken(descriptor), expires);
     }
+
+    // 32 random bytes = an unguessable token. The raw value goes to the client,
+    // only its hash goes to the database.
+    public (string Raw, string Hash, DateTime ExpiresAt) CreateRefreshToken()
+    {
+        var raw = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(32));
+        return (raw, HashToken(raw), DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays));
+    }
+
+    public string HashToken(string rawToken)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken))).ToLowerInvariant();
 }

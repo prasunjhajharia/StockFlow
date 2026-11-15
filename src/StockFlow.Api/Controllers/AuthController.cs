@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
 using StockFlow.Api.Services;
@@ -10,10 +10,12 @@ namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IUserRepository users, ITokenService tokens) : ControllerBase
+public class AuthController(
+    IUserRepository users,
+    IRefreshTokenRepository refreshTokens,
+    ITokenService tokens) : ControllerBase
 {
-    // Used to spend the same time on unknown emails as on real ones,
-    // so response time doesn't reveal which emails exist
+    // Spends the same time on unknown emails as on real ones
     private static readonly string DummyHash = BCrypt.Net.BCrypt.HashPassword("timing-equalizer");
 
     [HttpPost("register")]
@@ -63,9 +65,40 @@ public class AuthController(IUserRepository users, ITokenService tokens) : Contr
         }
 
         await users.RecordLoginAttemptAsync(email, true, ip, agent, ct);
+        return Ok(await IssueTokensAsync(user, ct));
+    }
 
-        var (token, expiresAt) = tokens.CreateAccessToken(user);
-        return Ok(new { accessToken = token, expiresAt, user = ToProfile(user) });
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(RefreshRequest req, CancellationToken ct)
+    {
+        var (newRaw, newHash, newExpires) = tokens.CreateRefreshToken();
+
+        var userId = await refreshTokens.RotateAsync(
+            tokens.HashToken(req.RefreshToken), newHash, newExpires, ct);
+
+        if (userId is null)
+            return InvalidRefreshToken();
+
+        var user = await users.FindByIdAsync(userId.Value, ct);
+        if (user is null)
+            return InvalidRefreshToken();
+
+        var (access, accessExpires) = tokens.CreateAccessToken(user);
+        return Ok(new
+        {
+            accessToken = access,
+            expiresAt = accessExpires,
+            refreshToken = newRaw,
+            user = ToProfile(user)
+        });
+    }
+
+    // The refresh token itself is the proof, so no [Authorize] is needed
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(RefreshRequest req, CancellationToken ct)
+    {
+        await refreshTokens.RevokeAsync(tokens.HashToken(req.RefreshToken), ct);
+        return NoContent();
     }
 
     [Authorize]
@@ -77,11 +110,33 @@ public class AuthController(IUserRepository users, ITokenService tokens) : Contr
         role = User.FindFirstValue("role")
     });
 
+    private async Task<object> IssueTokensAsync(AppUser user, CancellationToken ct)
+    {
+        var (access, accessExpires) = tokens.CreateAccessToken(user);
+        var (raw, hash, refreshExpires) = tokens.CreateRefreshToken();
+        await refreshTokens.StoreAsync(user.Id, hash, refreshExpires, ct);
+
+        return new
+        {
+            accessToken = access,
+            expiresAt = accessExpires,
+            refreshToken = raw,
+            user = ToProfile(user)
+        };
+    }
+
     private IActionResult InvalidCredentials() => Unauthorized(new ProblemDetails
     {
         Status = StatusCodes.Status401Unauthorized,
         Title = "Invalid credentials",
         Detail = "Email or password is incorrect."
+    });
+
+    private IActionResult InvalidRefreshToken() => Unauthorized(new ProblemDetails
+    {
+        Status = StatusCodes.Status401Unauthorized,
+        Title = "Invalid refresh token",
+        Detail = "Please log in again."
     });
 
     // Never return the password hash

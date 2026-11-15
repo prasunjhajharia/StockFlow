@@ -20,6 +20,18 @@ public class UserRepository(IDbConnectionFactory db) : IUserRepository
             new { email }, cancellationToken: ct));
     }
 
+    public async Task<AppUser?> FindByIdAsync(int id, CancellationToken ct = default)
+    {
+        await using var conn = await db.OpenConnectionAsync(ct);
+        return await conn.QuerySingleOrDefaultAsync<AppUser>(new CommandDefinition(@"
+            SELECT u.id, u.email, u.password_hash, u.full_name,
+                   r.name AS role_name, u.is_active, u.locked_until
+            FROM users u
+            JOIN roles r ON r.id = u.role_id
+            WHERE u.id = @id",
+            new { id }, cancellationToken: ct));
+    }
+
     public async Task<AppUser> CreateAsync(string email, string passwordHash, string fullName,
         string roleName, CancellationToken ct = default)
     {
@@ -50,7 +62,6 @@ public class UserRepository(IDbConnectionFactory db) : IUserRepository
         string? userAgent, CancellationToken ct = default)
     {
         await using var conn = await db.OpenConnectionAsync(ct);
-        // Your PL/pgSQL function: log the attempt and update the lockout counters
         await conn.ExecuteAsync(new CommandDefinition(
             "SELECT record_login_attempt(@email, @succeeded, @ip, @userAgent)",
             new { email, succeeded, ip, userAgent }, cancellationToken: ct));
