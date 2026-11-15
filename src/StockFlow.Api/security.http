@@ -1,0 +1,47 @@
+@host = http://localhost:5044
+
+### 1. No token, expect 401
+GET {{host}}/api/products
+
+### 2. Login as Admin
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@example.test", "password": "correct-horse-battery" }
+
+### 3. Admin reads products, expect 200
+GET {{host}}/api/products
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### 4. Admin views reports, expect 200
+GET {{host}}/api/reports/low-stock
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### 5. Register a staff user, expect 201 (409 if it already exists, that is fine)
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "staff@example.test", "password": "another-long-password", "fullName": "Staff User" }
+
+### 6. Login as staff
+# @name staffLogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "staff@example.test", "password": "another-long-password" }
+
+### 7. Staff reads products, expect 200
+GET {{host}}/api/products
+Authorization: Bearer {{staffLogin.response.body.accessToken}}
+
+### 8. Staff creates a product, expect 403
+POST {{host}}/api/products
+Authorization: Bearer {{staffLogin.response.body.accessToken}}
+Content-Type: application/json
+
+{ "sku": "X-1", "name": "Nope", "unitPrice": 1, "reorderLevel": 0 }
+
+### 9. Staff views reports, expect 403
+GET {{host}}/api/reports/low-stock
+Authorization: Bearer {{staffLogin.response.body.accessToken}}

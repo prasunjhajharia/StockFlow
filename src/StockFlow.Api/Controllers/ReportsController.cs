@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;
@@ -6,6 +7,7 @@ namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/reports")]
+[Authorize(Roles = "Manager,Admin")]
 public class ReportsController(IReportRepository reports) : ControllerBase
 {
     [HttpGet("low-stock")]

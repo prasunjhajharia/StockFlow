@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using StockFlow.Api.Dtos;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;

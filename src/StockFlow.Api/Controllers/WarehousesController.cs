@@ -2,14 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/warehouses")]
+[Authorize]
+
 public class WarehousesController(IWarehouseRepository warehouses) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<IReadOnlyList<Warehouse>>> GetAll(CancellationToken ct)
         => Ok(await warehouses.GetAllAsync(ct));
 
@@ -28,6 +32,7 @@ public class WarehousesController(IWarehouseRepository warehouses) : ControllerB
     }
 
     [HttpPut("{id:int}")]
+     [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<Warehouse>> Update(int id, WarehouseRequest req, CancellationToken ct)
     {
         var warehouse = ToWarehouse(req);

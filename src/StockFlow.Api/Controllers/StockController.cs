@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
 using StockFlow.Core.Interfaces;
@@ -7,6 +8,7 @@ namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/stock")]
+[Authorize]
 public class StockController(IStockRepository stock) : ControllerBase
 {
     [HttpGet]
@@ -19,6 +21,7 @@ public class StockController(IStockRepository stock) : ControllerBase
         => Ok(await stock.GetMovementsAsync(productId, ct));
 
     [HttpPost("adjust")]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<IActionResult> Adjust(StockAdjustmentRequest req, CancellationToken ct)
     {
         if (req.QuantityChange == 0)

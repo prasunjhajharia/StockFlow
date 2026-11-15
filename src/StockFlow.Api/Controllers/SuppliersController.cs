@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
 using StockFlow.Core.Interfaces;
@@ -7,6 +8,7 @@ namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/suppliers")]
+[Authorize]
 public class SuppliersController(ISupplierRepository suppliers) : ControllerBase
 {
     [HttpGet]
@@ -21,6 +23,7 @@ public class SuppliersController(ISupplierRepository suppliers) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<Supplier>> Create(ContactRequest req, CancellationToken ct)
     {
         var created = await suppliers.CreateAsync(ToSupplier(req), ct);
@@ -28,6 +31,7 @@ public class SuppliersController(ISupplierRepository suppliers) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<Supplier>> Update(int id, ContactRequest req, CancellationToken ct)
     {
         var supplier = ToSupplier(req);

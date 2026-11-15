@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
-using StockFlow.Core.Exceptions;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;
 
@@ -8,6 +8,7 @@ namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/purchase-orders")]
+[Authorize]
 public class PurchaseOrdersController(IPurchaseOrderRepository orders) : ControllerBase
 {
     [HttpGet]
@@ -22,6 +23,7 @@ public class PurchaseOrdersController(IPurchaseOrderRepository orders) : Control
     }
 
     [HttpPost]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<PurchaseOrder>> Create(PurchaseOrderRequest req, CancellationToken ct)
     {
         var lines = req.Lines.Select(l => new PurchaseOrderLine
@@ -34,6 +36,7 @@ public class PurchaseOrdersController(IPurchaseOrderRepository orders) : Control
     }
 
     [HttpPost("{id:int}/order")]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<PurchaseOrder>> MarkOrdered(int id, CancellationToken ct)
     {
         await orders.MarkOrderedAsync(id, ct);
@@ -48,6 +51,7 @@ public class PurchaseOrdersController(IPurchaseOrderRepository orders) : Control
     }
 
     [HttpPost("{id:int}/cancel")]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<PurchaseOrder>> Cancel(int id, CancellationToken ct)
     {
         await orders.CancelAsync(id, ct);

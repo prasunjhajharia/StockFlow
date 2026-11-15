@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StockFlow.Api.Controllers;
 
 [ApiController]
 [Route("api/products")]
+[Authorize]
 public class ProductsController(IProductRepository products) : ControllerBase
 {
     [HttpGet]
@@ -21,6 +23,7 @@ public class ProductsController(IProductRepository products) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<Product>> Create(ProductRequest req, CancellationToken ct)
     {
         var created = await products.CreateAsync(ToProduct(req), ct);
@@ -28,6 +31,7 @@ public class ProductsController(IProductRepository products) : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Manager,Admin")]
     public async Task<ActionResult<Product>> Update(int id, ProductRequest req, CancellationToken ct)
     {
         var product = ToProduct(req);
