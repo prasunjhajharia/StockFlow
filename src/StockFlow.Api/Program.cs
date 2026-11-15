@@ -24,6 +24,7 @@ builder.Services.AddScoped<ISalesOrderRepository, SalesOrderRepository>();
 
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
