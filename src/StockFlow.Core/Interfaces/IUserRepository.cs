@@ -10,4 +10,8 @@ public interface IUserRepository
         string roleName, CancellationToken ct = default);
     Task RecordLoginAttemptAsync(string email, bool succeeded, string? ip,
         string? userAgent, CancellationToken ct = default);
+
+    Task<IReadOnlyList<UserSummary>> GetAllAsync(CancellationToken ct = default);
+    Task ChangeRoleAsync(int actorId, int userId, string roleName, CancellationToken ct = default);
+    Task SetActiveAsync(int actorId, int userId, bool active, CancellationToken ct = default);
 }

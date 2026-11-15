@@ -1,0 +1,64 @@
+@host = http://localhost:5044
+
+### Login as admin
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@example.test", "password": "correct-horse-battery" }
+
+### List users, expect 200
+GET {{host}}/api/users
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Create a manager, expect 201
+POST {{host}}/api/users
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{ "email": "manager@example.test", "password": "manager-password-1", "fullName": "Mia Manager", "role": "Manager" }
+
+### Change staff user to Manager (use the real id from the list), expect 204
+PUT {{host}}/api/users/7/role
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{ "role": "Manager" }
+
+### Remove own Admin role (use your own id), expect 409
+PUT {{host}}/api/users/4/role
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{ "role": "Staff" }
+
+### Deactivate the manager (use the real id), expect 204
+PUT {{host}}/api/users/8/active
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{ "isActive": false }
+
+### Invalid role, expect 400
+PUT {{host}}/api/users/7/role
+Authorization: Bearer {{login.response.body.accessToken}}
+Content-Type: application/json
+
+{ "role": "Boss" }
+
+### Anonymous register is gone, expect 404 or 405
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "x@example.test", "password": "long-enough-password", "fullName": "X" }
+
+### Staff cannot list users, expect 403 (log in as staff first)
+# @name staffLogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "staff@example.test", "password": "another-long-password" }
+
+###
+GET {{host}}/api/users
+Authorization: Bearer {{staffLogin.response.body.accessToken}}

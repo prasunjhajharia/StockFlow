@@ -18,16 +18,7 @@ public class AuthController(
     // Spends the same time on unknown emails as on real ones
     private static readonly string DummyHash = BCrypt.Net.BCrypt.HashPassword("timing-equalizer");
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest req, CancellationToken ct)
-    {
-        var email = req.Email.Trim().ToLowerInvariant();
-        var hash = BCrypt.Net.BCrypt.HashPassword(req.Password);
-
-        // Everyone registers as Staff. Higher roles are given by an admin.
-        var user = await users.CreateAsync(email, hash, req.FullName.Trim(), "Staff", ct);
-        return StatusCode(StatusCodes.Status201Created, ToProfile(user));
-    }
+   
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest req, CancellationToken ct)
