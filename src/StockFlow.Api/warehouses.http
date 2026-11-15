@@ -1,0 +1,22 @@
+@host = http://localhost:5044
+
+### List
+GET {{host}}/api/warehouses
+
+### Create
+POST {{host}}/api/warehouses
+Content-Type: application/json
+
+{ "name": "North Depot", "location": "Aarhus" }
+
+### Duplicate name, expect 409
+POST {{host}}/api/warehouses
+Content-Type: application/json
+
+{ "name": "North Depot", "location": "Aarhus" }
+
+### Update
+PUT {{host}}/api/warehouses/2
+Content-Type: application/json
+
+{ "name": "North Depot", "location": "Aarhus East", "isActive": true }
