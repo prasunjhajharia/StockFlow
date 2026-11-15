@@ -1,0 +1,39 @@
+@host = http://localhost:5044
+
+### Register (password needs 10+ characters)
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "Admin@Example.test", "password": "correct-horse-battery", "fullName": "First Admin" }
+
+### Register again, expect 409
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "admin@example.test", "password": "correct-horse-battery", "fullName": "Again" }
+
+### Short password, expect 400
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "short@example.test", "password": "abc", "fullName": "Short" }
+
+### Login, expect 200 with an accessToken
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@example.test", "password": "correct-horse-battery" }
+
+### Me WITHOUT a token, expect 401
+GET {{host}}/api/auth/me
+
+### Me WITH the token, expect 200
+GET {{host}}/api/auth/me
+Authorization: Bearer {{login.response.body.accessToken}}
+
+### Wrong password, expect 401
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@example.test", "password": "wrong-password-here" }
