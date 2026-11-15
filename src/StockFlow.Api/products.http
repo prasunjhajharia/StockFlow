@@ -1,0 +1,22 @@
+@host = http://localhost:5044
+
+### List
+GET {{host}}/api/products
+
+### Create
+POST {{host}}/api/products
+Content-Type: application/json
+
+{ "sku": "MOU-001", "name": "Mouse", "unitPrice": 25.50, "reorderLevel": 10 }
+
+### Duplicate SKU, should give 409
+POST {{host}}/api/products
+Content-Type: application/json
+
+{ "sku": "MOU-001", "name": "Mouse again", "unitPrice": 25.50, "reorderLevel": 10 }
+
+### Update
+PUT {{host}}/api/products/2
+Content-Type: application/json
+
+{ "sku": "MOU-001", "name": "Wireless Mouse", "unitPrice": 29.90, "reorderLevel": 10, "isActive": true }
