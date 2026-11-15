@@ -1,0 +1,43 @@
+@host = http://localhost:5044
+
+### Suppliers
+GET {{host}}/api/suppliers
+
+### Create supplier
+POST {{host}}/api/suppliers
+Content-Type: application/json
+
+{ "name": "Globex Parts", "email": "info@globex.test", "phone": "+45 12 34 56 78" }
+
+### Duplicate supplier, expect 409
+POST {{host}}/api/suppliers
+Content-Type: application/json
+
+{ "name": "Globex Parts" }
+
+### Customers
+GET {{host}}/api/customers
+
+### Create customer
+POST {{host}}/api/customers
+Content-Type: application/json
+
+{ "name": "Maria Nielsen", "email": "maria@example.test" }
+
+### Duplicate email, expect 409
+POST {{host}}/api/customers
+Content-Type: application/json
+
+{ "name": "Maria Again", "email": "maria@example.test" }
+
+### Bad email, expect 400
+POST {{host}}/api/customers
+Content-Type: application/json
+
+{ "name": "No Good", "email": "not-an-email" }
+
+### Update (use the real id)
+PUT {{host}}/api/customers/2
+Content-Type: application/json
+
+{ "name": "Maria Nielsen", "email": "maria@example.test", "phone": "+45 99 99 99 99", "isActive": true }
