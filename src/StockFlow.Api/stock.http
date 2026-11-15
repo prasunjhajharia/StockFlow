@@ -1,0 +1,25 @@
+@host = http://localhost:5044
+
+### Stock levels
+GET {{host}}/api/stock
+
+### Movements for product 1
+GET {{host}}/api/stock/movements/1
+
+### Add 5
+POST {{host}}/api/stock/adjust
+Content-Type: application/json
+
+{ "productId": 1, "warehouseId": 1, "quantityChange": 5, "note": "found in storage" }
+
+### Remove too many, expect 409
+POST {{host}}/api/stock/adjust
+Content-Type: application/json
+
+{ "productId": 1, "warehouseId": 1, "quantityChange": -9999 }
+
+### Bad warehouse, expect 404
+POST {{host}}/api/stock/adjust
+Content-Type: application/json
+
+{ "productId": 1, "warehouseId": 999, "quantityChange": 1 }

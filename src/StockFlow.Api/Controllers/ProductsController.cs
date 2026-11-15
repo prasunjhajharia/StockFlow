@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
-using StockFlow.Core.Exceptions;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;
 
@@ -24,31 +23,17 @@ public class ProductsController(IProductRepository products) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Product>> Create(ProductRequest req, CancellationToken ct)
     {
-        try
-        {
-            var created = await products.CreateAsync(ToProduct(req), ct);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (DuplicateSkuException ex)
-        {
-            return Conflict(new { error = ex.Message });
-        }
+        var created = await products.CreateAsync(ToProduct(req), ct);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<Product>> Update(int id, ProductRequest req, CancellationToken ct)
     {
-        try
-        {
-            var product = ToProduct(req);
-            product.Id = id;
-            var updated = await products.UpdateAsync(product, ct);
-            return updated is null ? NotFound() : Ok(updated);
-        }
-        catch (DuplicateSkuException ex)
-        {
-            return Conflict(new { error = ex.Message });
-        }
+        var product = ToProduct(req);
+        product.Id = id;
+        var updated = await products.UpdateAsync(product, ct);
+        return updated is null ? NotFound() : Ok(updated);
     }
 
     private static Product ToProduct(ProductRequest r) => new()

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using StockFlow.Api.Dtos;
-using StockFlow.Core.Exceptions;
 using StockFlow.Core.Interfaces;
 using StockFlow.Core.Models;
 
@@ -24,31 +23,17 @@ public class WarehousesController(IWarehouseRepository warehouses) : ControllerB
     [HttpPost]
     public async Task<ActionResult<Warehouse>> Create(WarehouseRequest req, CancellationToken ct)
     {
-        try
-        {
-            var created = await warehouses.CreateAsync(ToWarehouse(req), ct);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-        catch (DuplicateWarehouseNameException ex)
-        {
-            return Conflict(new { error = ex.Message });
-        }
+        var created = await warehouses.CreateAsync(ToWarehouse(req), ct);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<Warehouse>> Update(int id, WarehouseRequest req, CancellationToken ct)
     {
-        try
-        {
-            var warehouse = ToWarehouse(req);
-            warehouse.Id = id;
-            var updated = await warehouses.UpdateAsync(warehouse, ct);
-            return updated is null ? NotFound() : Ok(updated);
-        }
-        catch (DuplicateWarehouseNameException ex)
-        {
-            return Conflict(new { error = ex.Message });
-        }
+        var warehouse = ToWarehouse(req);
+        warehouse.Id = id;
+        var updated = await warehouses.UpdateAsync(warehouse, ct);
+        return updated is null ? NotFound() : Ok(updated);
     }
 
     private static Warehouse ToWarehouse(WarehouseRequest r) => new()

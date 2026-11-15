@@ -1,0 +1,31 @@
+@host = http://localhost:5044
+
+### List
+GET {{host}}/api/purchase-orders
+
+### Create (supplier 1, warehouse 1, product 1)
+POST {{host}}/api/purchase-orders
+Content-Type: application/json
+
+{ "supplierId": 1, "warehouseId": 1, "lines": [ { "productId": 1, "quantity": 12, "unitCost": 700 } ] }
+
+### Receive too early (still DRAFT), expect 409
+POST {{host}}/api/purchase-orders/2/receive
+
+### Mark as ordered
+POST {{host}}/api/purchase-orders/2/order
+
+### Receive, expect { "linesReceived": 1 }
+POST {{host}}/api/purchase-orders/2/receive
+
+### Receive again, expect 409
+POST {{host}}/api/purchase-orders/2/receive
+
+### Unknown order, expect 404
+POST {{host}}/api/purchase-orders/999/receive
+
+### Empty lines, expect 400
+POST {{host}}/api/purchase-orders
+Content-Type: application/json
+
+{ "supplierId": 1, "warehouseId": 1, "lines": [] }
