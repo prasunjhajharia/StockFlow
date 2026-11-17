@@ -84,3 +84,5 @@ app.UseAuthorization();    // are you allowed? (checks roles)
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
