@@ -46,9 +46,11 @@ public static class TestDb
     private static async Task BuildSchemaAsync()
     {
         var config = new ConfigurationBuilder().AddUserSecrets(typeof(TestDb).Assembly).Build();
-        var cs = config.GetConnectionString("StockFlowTest")
+        var cs = Environment.GetEnvironmentVariable("STOCKFLOW_TEST_CONNECTION")
+            ?? config.GetConnectionString("StockFlowTest")
             ?? throw new InvalidOperationException(
                 "Set ConnectionStrings:StockFlowTest with dotnet user-secrets (see the setup step).");
+
 
         var database = new NpgsqlConnectionStringBuilder(cs).Database ?? "";
         if (!database.EndsWith("_test", StringComparison.OrdinalIgnoreCase))
