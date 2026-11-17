@@ -1,6 +1,8 @@
 # StockFlow
 ![CI](https://github.com/prasunjhajharia/StockFlow/actions/workflows/ci.yml/badge.svg)
 
+![API docs](docs/scalar.png)
+
 An inventory and order management API. I built it to learn SQL properly, so most of the business rules live in PostgreSQL (functions, constraints, triggers) and the C# API mostly calls them.
 
 I used Dapper instead of EF Core on purpose. I wanted to write the SQL myself and see exactly what runs.
