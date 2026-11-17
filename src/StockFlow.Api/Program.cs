@@ -8,6 +8,7 @@ using StockFlow.Api.Services;
 using StockFlow.Core.Interfaces;
 using StockFlow.Data;
 using StockFlow.Data.Repositories;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +75,7 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseAuthentication();   // who are you? (reads the token)
