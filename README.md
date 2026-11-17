@@ -1,4 +1,5 @@
 # StockFlow
+![CI](https://github.com/prasunjhajharia/StockFlow/actions/workflows/ci.yml/badge.svg)
 
 An inventory and order management API. I built it to learn SQL properly, so most of the business rules live in PostgreSQL (functions, constraints, triggers) and the C# API mostly calls them.
 
